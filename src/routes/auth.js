@@ -1,17 +1,20 @@
+// src/routes/auth.js
+// -------------------------------------------------------------
 // Authentication routes: registration and login.
 //
-// Mounted at /api/auth (see index.js), so:
-//   POST /api/auth/register   -> create a new account
-//   POST /api/auth/login      -> verify credentials
+// COMMANDS YOU RUN (from the project root):
+//   pnpm add bcrypt jsonwebtoken    # install hashing + JWT libraries
+//
+// This file demonstrates:
+//   - bcrypt:  hashing passwords before storage (register)
+//   - jsonwebtoken: signing a token after successful login
 // -------------------------------------------------------------
 
 import { Router } from "express";
-// `Router` is a mini-Express app you can attach routes to and then
-// mount onto the main app with a URL prefix (here /api/auth).
-
 import prisma from "../db.js";
+import { hashPassword, verifyPassword } from "../utils/password.js";
+import { signToken } from "../utils/jwt.js";
 
-// Create the router. All routes registered on it get the /api/auth prefix.
 const authRouter = Router();
 
 /* =====================================================================
@@ -26,22 +29,23 @@ authRouter.post("/register", async (req, res) => {
   const { username, email, password, full_name, role } = req.body;
 
   try {
-    // TODO(security): hash `password` before storing it.
-    // prisma.user.create adds one row and returns it.
+    // Hash the password before storing it.
+    const hashedPassword = await hashPassword(password);
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
-        password,
-        full_name, // optional — will be null if not supplied
-        role,      // optional — falls back to schema default "user"
+        password: hashedPassword,
+        full_name,
+        role,
       },
     });
 
     // Never return the password, even plaintext, back to the client.
+    // Issue a JWT for the newly registered user.
+    const token = signToken(newUser);
     res.status(201).json({
-      message: "User registered successfully",
-      // `select` limits which fields come back from the created row.
+      token,
       user: {
         id: newUser.id,
         username: newUser.username,
@@ -89,15 +93,16 @@ authRouter.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // TODO(security): compare against the hashed password here instead.
-    // For now the plaintext comparison mirrors what was stored at register.
-    if (user.password !== password) {
+    // Verify the supplied password against the stored hash.
+    const passwordMatches = await verifyPassword(password, user.password);
+    if (!passwordMatches) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Success — respond without exposing the stored password.
+    // Success — issue a JWT and return it with user info.
+    const token = signToken(user);
     res.json({
-      message: "Login successful",
+      token,
       user: {
         id: user.id,
         username: user.username,

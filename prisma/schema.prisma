@@ -16,7 +16,7 @@ datasource db {
 //  id        Int     @id @default(autoincrement())
 //  username  String
 //   full_name String?
-//   role      String?
+//   password String
 // }
 
 model User {
