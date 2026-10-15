@@ -3,6 +3,7 @@ import "dotenv/config";
 import prisma, { testConnection } from "./db.js";
 import authRouter from "./routes/auth.js";
 import taskRouter from "./routes/tasks.js";
+import idorRouter from "./routes/idor.js";
 
 const app = express();
 
@@ -15,6 +16,10 @@ app.use("/api/auth", authRouter);
 // Mount the PROTECTED task routes at /api/tasks. Each route inside applies
 // requireAuth (authentication) and, where needed, requireRole (authorization).
 app.use("/api/tasks", taskRouter);
+
+// Mount the IDOR / ownership-check example at /api/idor.
+// /api/idor/v1/* = VULNERABLE (IDOR), /api/idor/v2/* = FIXED (ownership checked).
+app.use("/api/idor", idorRouter);
 
 // Check the database connection when the server starts.
 try {
