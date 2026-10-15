@@ -1,11 +1,15 @@
 import express from "express";
 import "dotenv/config";
 import prisma, { testConnection } from "./db.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
 
 // Enable JSON body parsing for POST/PUT requests
 app.use(express.json());
+
+// Mount the authentication routes at /api/auth -> /api/auth/register, /api/auth/login
+app.use("/api/auth", authRouter);
 
 // Check the database connection when the server starts.
 try {

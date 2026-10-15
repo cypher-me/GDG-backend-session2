@@ -26,4 +26,6 @@ model User {
   full_name String?
   role      String   @default("user")              // defaults if not supplied
   createdAt DateTime @default(now())               // set automatically
+  // Stored as plain text for now — hashing comes in a later step.
+  password  String
 }
