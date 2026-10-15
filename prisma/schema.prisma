@@ -11,9 +11,19 @@ datasource db {
 // Placeholder "users" table matching the columns the sample route queries.
 // Adjust fields to match the real table (or run `prisma db pull` once you have
 // a live DATABASE_URL to introspect it automatically).
+
+// model User {
+//  id        Int     @id @default(autoincrement())
+//  username  String
+//   full_name String?
+//   role      String?
+// }
+
 model User {
-  id        Int     @id @default(autoincrement())
-  username  String
+  id        Int      @id @default(autoincrement())  // PK, auto-increments
+  username  String   @unique                       // no two rows share this
+  email     String   @unique
   full_name String?
-  role      String?
+  role      String   @default("user")              // defaults if not supplied
+  createdAt DateTime @default(now())               // set automatically
 }
