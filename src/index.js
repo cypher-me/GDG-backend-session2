@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config";
 import prisma, { testConnection } from "./db.js";
 import authRouter from "./routes/auth.js";
+import taskRouter from "./routes/tasks.js";
 
 const app = express();
 
@@ -10,6 +11,10 @@ app.use(express.json());
 
 // Mount the authentication routes at /api/auth -> /api/auth/register, /api/auth/login
 app.use("/api/auth", authRouter);
+
+// Mount the PROTECTED task routes at /api/tasks. Each route inside applies
+// requireAuth (authentication) and, where needed, requireRole (authorization).
+app.use("/api/tasks", taskRouter);
 
 // Check the database connection when the server starts.
 try {

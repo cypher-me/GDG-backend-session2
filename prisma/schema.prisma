@@ -28,4 +28,21 @@ model User {
   createdAt DateTime @default(now())               // set automatically
   // Stored as plain text for now — hashing comes in a later step.
   password  String
+
+  // Relation to Task: lets Prisma query a user's tasks (user.tasks).
+  tasks     Task[]
+}
+
+// "Task" model backing the PROTECTED task routes (see src/routes/tasks.js).
+// A task belongs to exactly one user (owner). `role` is not stored here —
+// it lives on the User, and authorization is decided from the JWT's role claim.
+model Task {
+  id        Int      @id @default(autoincrement()) // PK
+  title     String                                 // task heading
+  description String?                              // optional details
+  status    String   @default("pending")           // pending | in_progress | done
+  // The id of the user who owns this task. FK -> User.id
+  ownerId   Int
+  owner     User     @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
 }
